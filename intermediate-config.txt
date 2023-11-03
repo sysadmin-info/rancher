@@ -83,8 +83,8 @@ stateOrProvinceName_default     = Poland
 localityName_default            = Lodz
 0.organizationName_default      = Sysadmin
 organizationalUnitName_default  = Sysadmin Rancher
-emailAddress_default            = admin@sysadmin.info.pl
 commonName_default              = Sysadmin Intermediate CA
+emailAddress_default            = admin@sysadmin.info.pl
 
 [ v3_ca ]
 # Extensions for a typical CA (`man x509v3_config`).
