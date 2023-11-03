@@ -84,7 +84,7 @@ localityName_default            = Lodz
 0.organizationName_default      = Sysadmin
 organizationalUnitName_default  = Sysadmin Rancher
 emailAddress_default            = admin@sysadmin.info.pl
-commonName_defailt              = Sysadmin Root CA
+commonName_default              = Sysadmin Root CA
 
 [ v3_ca ]
 # Extensions for a typical CA (`man x509v3_config`).
