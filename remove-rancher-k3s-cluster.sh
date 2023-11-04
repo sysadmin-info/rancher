@@ -5,6 +5,7 @@ echo "$REALUSER"
 # Remove files
 cd /home/$REALUSER
 rm -f *.srl *.yaml *.crt *.csr *.key *.pem rancher.c* rancher.k* tls.* *.conf *.txt 
+rm -rf /tmp/ca
 
 # Function to check for file existence and execute it
 execute_if_exists() {
