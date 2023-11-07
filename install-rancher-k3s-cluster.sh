@@ -115,45 +115,41 @@ install_rancher(){
 
 generate_SAN_certs(){
   echo "************************ Root CA *************************************"
-  cd /home/$USER
+  cd /tmp
   echo "Step 1: Prepare Directories and Files for the CA"
   
   echo "a. Create directories to hold the CA's files and certificates."
-  mkdir /home/$USER/ca /home/$USER/ca/intermediate
+  mkdir /tmp/ca /tmp/ca/intermediate
   
   echo "b. Create the database and serial files that the CA uses to track certificates."
-  touch /home/$USER/ca/index.txt /home/$USER/ca/intermediate/index.txt
-  echo 1000 > /home/$USER/ca/serial
-  echo 1000 > /home/$USER/ca/intermediate/serial
+  touch /tmp/ca/index.txt /tmp/ca/intermediate/index.txt
+  echo 1000 > /tmp/ca/serial
+  echo 1000 > /tmp/ca/intermediate/serial
   
   echo "**********************************************************************"
   echo "Step 2: Create the Root CA"
   
   echo "a. Generate the private key for the Root CA."
-  openssl genrsa -aes256 -out /home/$USER/ca/root-ca.key 4096
+  openssl genrsa -aes256 -out /tmp/ca/root-ca.key 4096
   
   echo "b. Create the root certificate using the private key."
   echo "You’ll be prompted to enter details for the certificate."
-  wget -O /home/$USER/ca/root-ca.cnf https://raw.githubusercontent.com/sysadmin-info/rancher/main/root-config.txt
-  echo "CHANGE adrian to your user!!! in sed command"
-  sed -i 's/$USER/adrian/g' /home/$USER/ca/root-ca.cnf
-  openssl req -config /home/$USER/ca/root-ca.cnf -x509 -new -nodes -key /home/$USER/ca/root-ca.key -sha256 -days 3650 -out /home/$USER/ca/root-ca.crt -extensions v3_ca -config <(cat /home/$USER/ca/root-ca.cnf <(printf "\n[v3_ca]\nbasicConstraints = critical,CA:true\nkeyUsage = critical,keyCertSign,cRLSign"))
-  chmod 444 /home/$USER/ca/root-ca.crt
+  wget -O /tmp/ca/root-ca.cnf https://raw.githubusercontent.com/sysadmin-info/rancher/main/root-config.txt
+  openssl req -config /tmp/ca/root-ca.cnf -x509 -new -nodes -key /tmp/ca/root-ca.key -sha256 -days 3650 -out /tmp/ca/root-ca.crt -extensions v3_ca -config <(cat /tmp/ca/root-ca.cnf <(printf "\n[v3_ca]\nbasicConstraints = critical,CA:true\nkeyUsage = critical,keyCertSign,cRLSign"))
+  chmod 444 /tmp/ca/root-ca.crt
 
   echo "**************************** Intermediate CA *********************************"
   echo "Step 3: Create the Intermediate CA"
   
   echo "a. Generate the private key for the Intermediate CA."
-  openssl genrsa -aes256 -out /home/$USER/ca/intermediate/intermediate-ca.key 4096
-  chmod 400 /home/$USER/ca/intermediate/intermediate-ca.key
+  openssl genrsa -aes256 -out /tmp/ca/intermediate/intermediate-ca.key 4096
+  chmod 400 /tmp/ca/intermediate/intermediate-ca.key
 
   echo "b. Create a CSR for the Intermediate CA."
   echo "Fill in the details at the prompt."
-  wget -O /home/$USER/ca/intermediate/intermediate-ca.cnf https://raw.githubusercontent.com/sysadmin-info/rancher/main/intermediate-config.txt
-  echo "CHANGE adrian to your user!!! in sed command"
-  sed -i 's/$USER/adrian/g' /home/$USER/ca/intermediate/intermediate-ca.cnf 
-  openssl req -config /home/$USER/ca/intermediate/intermediate-ca.cnf -new -sha256 -key /home/$USER/ca/intermediate/intermediate-ca.key -out /home/$USER/ca/intermediate/intermediate-ca.csr
-  cd /home/$USER/ca/intermediate
+  wget -O /tmp/ca/intermediate/intermediate-ca.cnf https://raw.githubusercontent.com/sysadmin-info/rancher/main/intermediate-config.txt
+  openssl req -config /tmp/ca/intermediate/intermediate-ca.cnf -new -sha256 -key /tmp/ca/intermediate/intermediate-ca.key -out /tmp/ca/intermediate/intermediate-ca.csr
+  cd /tmp/ca/intermediate
   cat > intermediate-ca.cnf <<EOF
 [ v3_intermediate_ca ]
 # Extensions for a typical intermediate CA
@@ -163,22 +159,22 @@ basicConstraints = critical,CA:true,pathlen:0
 keyUsage = critical, digitalSignature, cRLSign, keyCertSign
 EOF
   
-  cd /home/$USER
+  cd /tmp
 
   echo "c. Sign the Intermediate CSR with the Root CA to create the Intermediate certificate."
-  openssl x509 -req -in /home/$USER/ca/intermediate/intermediate-ca.csr -CA /home/$USER/ca/root-ca.crt -CAkey /home/$USER/ca/root-ca.key -CAcreateserial -out /home/$USER/ca/intermediate/intermediate-ca.crt -days 3650 -sha256 -extfile /home/$USER/ca/intermediate/intermediate-ca.cnf -extensions v3_intermediate_ca
-  chmod 444 /home/$USER/ca/intermediate/intermediate-ca.crt
+  openssl x509 -req -in /tmp/ca/intermediate/intermediate-ca.csr -CA /tmp/ca/root-ca.crt -CAkey /tmp/ca/root-ca.key -CAcreateserial -out /tmp/ca/intermediate/intermediate-ca.crt -days 3650 -sha256 -extfile /tmp/ca/intermediate/intermediate-ca.cnf -extensions v3_intermediate_ca
+  chmod 444 /tmp/ca/intermediate/intermediate-ca.crt
 
   echo "**************************** Rancher certificate *********************************"
   echo "Step 4: Create the Rancher Server Certificate"
   
   echo "a. Generate the private key for the server."
-  openssl genrsa -aes256 -out /home/$USER/ca/intermediate/rancher-server.key 2048
+  openssl genrsa -aes256 -out /tmp/ca/intermediate/rancher-server.key 2048
   
   echo "b. Create a CSR for the Rancher Server."
   echo "Provide the details at the prompt, making sure the common name matches the domain name of the server."
-  openssl req -new -sha256 -key /home/$USER/ca/intermediate/rancher-server.key -out /home/$USER/ca/intermediate/rancher-server.csr
-  chmod 400 /home/$USER/ca/intermediate/rancher-server.key
+  openssl req -new -sha256 -key /tmp/ca/intermediate/rancher-server.key -out /tmp/ca/intermediate/rancher-server.csr
+  chmod 400 /tmp/ca/intermediate/rancher-server.key
 
   echo "c. Sign the CSR with the Intermediate CA to create the server certificate."
   echo "The v3.ext file should contain the necessary extensions for the web server certificate, like subjectAltName if needed."
@@ -195,27 +191,27 @@ DNS.1 = rancher.local
 DNS.2 = www.rancher.local
 IP.1 = 10.10.0.123
 EOF
-  openssl x509 -req -in /home/$USER/ca/intermediate/rancher-server.csr -CA /home/$USER/ca/intermediate/intermediate-ca.crt -CAkey /home/$USER/ca/intermediate/intermediate-ca.key -CAcreateserial -out /home/$USER/ca/intermediate/rancher-server.crt -days 365 -sha256 -extfile /home/$USER/ca/intermediate/v3.ext -extensions v3_req 
+  openssl x509 -req -in /tmp/ca/intermediate/rancher-server.csr -CA /tmp/ca/intermediate/intermediate-ca.crt -CAkey /tmp/ca/intermediate/intermediate-ca.key -CAcreateserial -out /tmp/ca/intermediate/rancher-server.crt -days 365 -sha256 -extfile /tmp/ca/intermediate/v3.ext -extensions v3_req 
   
   echo "**************************** Certificate verification *********************************"
   echo "Step 5: Verify the Certificates"
   
   echo "a. After generating the certificates, verify them to make sure they form a valid chain."
   echo "If all goes well, this command should output web-server.crt: OK."
-  openssl verify -CAfile /home/$USER/ca/root-ca.crt -untrusted /home/$USER/ca/intermediate/intermediate-ca.crt /home/$USER/ca/intermediate/rancher-server.crt
+  openssl verify -CAfile /tmp/ca/root-ca.crt -untrusted /tmp/ca/intermediate/intermediate-ca.crt /tmp/ca/intermediate/rancher-server.crt
 
   echo "**********************************************************************"
   echo "Removing passphrase from Rancher certificate key"  
-  cd /home/$USER
-  openssl rsa -in /home/$USER/ca/intermediate/rancher-server.key -out /home/$USER/tls.key
+  cd /tmp
+  openssl rsa -in /tmp/ca/intermediate/rancher-server.key -out /tmp/tls.key
   
   echo "**********************************************************************"
   echo "Make a chain in tls.crt"
-  cat /home/$USER/ca/intermediate/rancher-server.crt /home/$USER/ca/intermediate/intermediate-ca.crt /home/$USER/ca/root-ca.crt > /home/$USER/tls.crt
+  cat /tmp/ca/intermediate/rancher-server.crt /tmp/ca/intermediate/intermediate-ca.crt /tmp/ca/root-ca.crt > /tmp/tls.crt
 
   echo "**********************************************************************"
   echo "Copy Root CA to cacerts.pem"
-  cp /home/$USER/ca/root-ca.crt /home/$USER/cacerts.pem
+  cp /tmp/ca/root-ca.crt /tmp/cacerts.pem
 }
 
 create_namespace(){
@@ -234,7 +230,7 @@ generate_secret_rancher_agent(){
 }
 
 generate_values(){
-  cd /home/$USER/ 
+  cd /tmp/ 
   cat > values.yaml <<EOF
 # Additional Trusted CAs.
 # Enable this flag and add your CA certs as a secret named tls-ca-additional in the namespace.
