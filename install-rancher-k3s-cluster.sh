@@ -134,7 +134,8 @@ generate_SAN_certs(){
   
   echo "b. Create the root certificate using the private key."
   echo "You’ll be prompted to enter details for the certificate."
-  wget -O /home/$USER/ca/root-ca.cnf https://raw.githubusercontent.com/sysadmin-info/rancher/main/root-config.txt 
+  wget -O /home/$USER/ca/root-ca.cnf https://raw.githubusercontent.com/sysadmin-info/rancher/main/root-config.txt
+  echo "CHANGE adrian to your user!!! in sed command"
   sed -i 's/$USER/adrian/g' /home/$USER/ca/root-ca.cnf
   openssl req -config /home/$USER/ca/root-ca.cnf -x509 -new -nodes -key /home/$USER/ca/root-ca.key -sha256 -days 3650 -out /home/$USER/ca/root-ca.crt -extensions v3_ca -config <(cat /home/$USER/ca/root-ca.cnf <(printf "\n[v3_ca]\nbasicConstraints = critical,CA:true\nkeyUsage = critical,keyCertSign,cRLSign"))
   chmod 444 /home/$USER/ca/root-ca.crt
@@ -148,7 +149,8 @@ generate_SAN_certs(){
 
   echo "b. Create a CSR for the Intermediate CA."
   echo "Fill in the details at the prompt."
-  wget -O /home/$USER/ca/intermediate/intermediate-ca.cnf https://raw.githubusercontent.com/sysadmin-info/rancher/main/intermediate-config.txt 
+  wget -O /home/$USER/ca/intermediate/intermediate-ca.cnf https://raw.githubusercontent.com/sysadmin-info/rancher/main/intermediate-config.txt
+  echo "CHANGE adrian to your user!!! in sed command"
   sed -i 's/$USER/adrian/g' /home/$USER/ca/intermediate/intermediate-ca.cnf 
   openssl req -config /home/$USER/ca/intermediate/intermediate-ca.cnf -new -sha256 -key /home/$USER/ca/intermediate/intermediate-ca.key -out /home/$USER/ca/intermediate/intermediate-ca.csr
   cd /home/$USER/ca/intermediate
