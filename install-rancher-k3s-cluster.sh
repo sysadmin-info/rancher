@@ -178,7 +178,7 @@ EOF
 
   echo "c. Sign the CSR with the Intermediate CA to create the server certificate."
   echo "The v3.ext file should contain the necessary extensions for the web server certificate, like subjectAltName if needed."
-  cd /home/adrian/ca/intermediate/
+  cd /tmp/ca/intermediate/
   cat > v3.ext <<EOF
 [ v3_req ]
 # Extensions to add to a certificate request
