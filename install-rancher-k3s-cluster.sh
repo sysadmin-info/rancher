@@ -32,6 +32,29 @@ error_exit() {
   exit 1
 }
 
+check_packages(){
+  if [[ $(command -v git) ]]; then
+    echo "git already installed"
+  else
+    sudo apt install git -y 
+  fi
+
+  if [[ $(command -v curl) ]]; then
+    echo "curl already installed"
+  else
+    sudo apt install curl -y
+  fi
+
+  if [[ $(command -v iptables) ]]; then
+    echo "iptables already installed"
+  else
+    sudo apt install iptables -y
+    sudo update-alternatives --set iptables /usr/sbin/iptables-legacy
+    sudo update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
+  fi
+}
+
+
 install_k3s() {
   execute_command "curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=\"v1.26.10+k3s1\" INSTALL_K3S_EXEC=\"--disable traefik\" K3S_KUBECONFIG_MODE=\"644\" sh -s -" || error_exit "Failed to install k3s"
   execute_command "systemctl -q is-active k3s.service" || error_exit "k3s service not active. Exiting..."
@@ -73,7 +96,6 @@ perform_cluster_check() {
 }
 
 install_git_helm() {
-  sudo apt install git
   curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 }
 
@@ -113,6 +135,7 @@ generate_SAN_certs(){
   echo "b. Create the root certificate using the private key."
   echo "You’ll be prompted to enter details for the certificate."
   wget -O /home/$USER/ca/root-ca.cnf https://raw.githubusercontent.com/sysadmin-info/rancher/main/root-config.txt 
+  sed -i 's/$USER/adrian/g' /home/$USER/ca/root-ca.cnf
   openssl req -config /home/$USER/ca/root-ca.cnf -x509 -new -nodes -key /home/$USER/ca/root-ca.key -sha256 -days 3650 -out /home/$USER/ca/root-ca.crt -extensions v3_ca -config <(cat /home/$USER/ca/root-ca.cnf <(printf "\n[v3_ca]\nbasicConstraints = critical,CA:true\nkeyUsage = critical,keyCertSign,cRLSign"))
   chmod 444 /home/$USER/ca/root-ca.crt
 
@@ -126,6 +149,7 @@ generate_SAN_certs(){
   echo "b. Create a CSR for the Intermediate CA."
   echo "Fill in the details at the prompt."
   wget -O /home/$USER/ca/intermediate/intermediate-ca.cnf https://raw.githubusercontent.com/sysadmin-info/rancher/main/intermediate-config.txt 
+  sed -i 's/$USER/adrian/g' /home/$USER/ca/intermediate/intermediate-ca.cnf 
   openssl req -config /home/$USER/ca/intermediate/intermediate-ca.cnf -new -sha256 -key /home/$USER/ca/intermediate/intermediate-ca.key -out /home/$USER/ca/intermediate/intermediate-ca.csr
   cd /home/$USER/ca/intermediate
   cat > intermediate-ca.cnf <<EOF
@@ -416,6 +440,7 @@ EOF
 }
 
 main() {
+  check_packages
   if install_k3s; then
     echo 'k3s is running...'
     setup_bash_autocomplete
@@ -434,8 +459,8 @@ main() {
 
     export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 
-    echo 'Wait 60 seconds...'
-    sleep 60 & # Background sleep command
+    echo 'Wait 180 seconds...'
+    sleep 180 & # Background sleep command
     display_spinner $! # Pass the PID of the last background command
     install_rancher
 
