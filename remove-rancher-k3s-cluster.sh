@@ -3,7 +3,7 @@
 REALUSER="${SUDO_USER:-${USER}}"
 echo "$REALUSER"
 # Remove files
-cd /home/$REALUSER
+cd /tmp
 rm -f *.srl *.yaml *.crt *.csr *.key *.pem rancher.c* rancher.k* tls.* *.conf *.txt 
 rm -rf /tmp/ca
 
