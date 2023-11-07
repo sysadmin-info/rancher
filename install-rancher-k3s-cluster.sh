@@ -461,12 +461,12 @@ main() {
 
     export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 
-    echo 'Wait 180 seconds...'
-    sleep 180 & # Background sleep command
+    echo 'Wait 360 seconds for nginx ingress controller...'
+    sleep 360 & # Background sleep command
     display_spinner $! # Pass the PID of the last background command
     install_rancher
 
-    echo 'Wait 120 seconds...'
+    echo 'Wait 120 seconds for rancher pods ...'
     sleep 120 & # Background sleep command
     display_spinner $! # Pass the PID of the last background command
 
