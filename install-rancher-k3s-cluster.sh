@@ -193,7 +193,7 @@ subjectAltName = @alt_names
 [ alt_names ]
 DNS.1 = rancher.local
 DNS.2 = www.rancher.local
-IP.1 = 10.10.0.120
+IP.1 = 10.10.0.123
 EOF
   openssl x509 -req -in /home/$USER/ca/intermediate/rancher-server.csr -CA /home/$USER/ca/intermediate/intermediate-ca.crt -CAkey /home/$USER/ca/intermediate/intermediate-ca.key -CAcreateserial -out /home/$USER/ca/intermediate/rancher-server.crt -days 365 -sha256 -extfile /home/$USER/ca/intermediate/v3.ext -extensions v3_req 
   
