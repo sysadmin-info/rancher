@@ -33,7 +33,7 @@ error_exit() {
 }
 
 install_k3s() {
-  execute_command "curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=\"v1.26.9+k3s1\" INSTALL_K3S_EXEC=\"--disable traefik\" K3S_KUBECONFIG_MODE=\"644\" sh -s -" || error_exit "Failed to install k3s"
+  execute_command "curl -sfL https://get.k3s.io | INSTALL_K3S_VERSION=\"v1.26.11+k3s2\" INSTALL_K3S_EXEC=\"--disable traefik\" K3S_KUBECONFIG_MODE=\"644\" sh -s -" || error_exit "Failed to install k3s"
   execute_command "systemctl -q is-active k3s.service" || error_exit "k3s service not active. Exiting..."
 }
 
